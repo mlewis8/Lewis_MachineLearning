@@ -59,6 +59,13 @@ void setup() {
   
 }
 
+void drawTrainingData() {
+  color[] colorValues = new color[5];
+  
+  // loop, while using the fill command , then ellipse to draw data
+  
+}
+
 
 void draw() {
   
