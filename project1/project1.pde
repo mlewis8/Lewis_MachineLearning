@@ -10,18 +10,8 @@ String []labelString;
 float [] widthInput;
 float [] heightInput;
 
-/* Training variables */
-int [] widthTraining;
-int [] heightTraining;
-
-
-/* Test variables */
-int [] widthTest;
-int [] heightTest;
-
-
-/* Prediction variables */
-int [] predictedTestType;
+Node [] testNodeList;
+Node [] trainingNodeList;
 
 
 void predictTestType() {
@@ -44,7 +34,7 @@ int calculateAccuracy() {
    // test data 
    
    // return the reusult
-  
+   return 0;  
 }
 
 
@@ -55,31 +45,74 @@ void readInput() {
    labelString = new String[rowCount];
    widthInput = new float[rowCount];
     heightInput = new float[rowCount]; 
+   int counter = 0;
+   int testCount = 0;
+   int trainingCount = 0;
+
+   
+   
    
    for (int row = 1; row < rowCount; row++) {
-     
-     labelInput[row] = dataset.getInt(row,0);
-     labelString[row] = dataset.getString(row,1);
-     
-     widthInput[row] = dataset.getFloat(row, 4);
-     heightInput[row] = dataset.getFloat(row,5);
+      int testType = counter++ % 4;
+      if (testType == 0) {
+         testCount++; 
+      }else {
+        trainingCount++; 
+      }
+   }
+   
+   testNodeList = new Node[testCount];
+   trainingNodeList = new Node[trainingCount];
+   
+   counter = 0;
+   testCount = 0;
+   trainingCount = 0;
+   for (int row = 1; row < rowCount; row++) {
+         
+     int testType = counter++ % 4;
+     if ( testType == 0 ) {
+         Node testNode = new Node();
+         testNodeList[testCount++] = testNode;
+         testNode.category = dataset.getInt(row,0);
+         testNode.labelType = dataset.getString(row,1);
+         testNode.xValue = dataset.getFloat(row,4);
+         testNode.yValue = dataset.getFloat(row,5);
+         testNode.setNodeColor();
+     }else {
+       Node trainingNode = new Node();
+       trainingNodeList[trainingCount++] = trainingNode;
+       trainingNode.category = dataset.getInt(row,0);
+       trainingNode.labelType = dataset.getString(row,1);
+       trainingNode.xValue = dataset.getFloat(row,4);
+       trainingNode.yValue = dataset.getFloat(row,5);
+       trainingNode.setNodeColor();
+     }
+   }
+   
+   for ( int i = 0; i < testNodeList.length; i++ ) {
+       testNodeList[i].findSmallestDistance(trainingNodeList);
      
    }
    
-   for ( int row =0; row < rowCount; row++ ) {
-      print( "(" + widthInput[row] + "," + heightInput[row] + " ) " );
-      
-     
+   int correctCount = 0;
+   for ( int i = 0; i < testNodeList.length; i++ ) {
+      if (testNodeList[i].predictionCorrect == true) correctCount++; 
    }
+   
+   println(" Correct " +  (int) correctCount + " incorrect " + (testNodeList.length - correctCount) );
+   print("Accuracy --- " + (double) correctCount /  (double) testNodeList.length );
+
   
 }
 
+
+
 void setup() {
   
-  size(700,700);
+  size(1000,1000);
   dataset = new Table("fruit_data_with_colors.txt");  
   readInput();
-  
+
   
   /* Show all the test points as circles */
   
@@ -89,56 +122,31 @@ void setup() {
 }
 
 void drawTrainingData() {
-  color[] colorValues = new color[5];
-  // Assign 5 different colors
-  
-  colorValues[0] = #000000;  // Black
-  colorValues[1] = #FF0000;  // Red
-  colorValues[2] = #FFFF00;  // Yellow
-  colorValues[3] = #0000FF; // Blue
-  colorValues[4] = #00FF00; // Lime
-  
-  int modulusCount = 0;
   
   
-  for (int row = 0; row < rowCount; row++){
+  for (int index = 0; index < testNodeList.length; index++ ) {
+     Node testNode = testNodeList[index];
+     
+     if (testNode.predictionCorrect == false ) {
+        fill(#00FF00); 
+       // fill(testNode.predictColor);
+     }else {
+       fill(testNode.predictColor);
+     }
+     //line((float) testNode.xValue * 60 -5, (float) testNode.yValue *70, (float) testNode.xValue *60 + 5, (float) testNode.yValue * 70);
+     ellipse((float) testNode.xValue * 60, (float) testNode.yValue * 70, 5, 5);
     
     
-    
-    int category = modulusCount++ % 4;
-    
-    if (category == 0) {
-       // This is our test data 
-       // Used the sqaure function to show test data.
-      
-    } else {
-        // This row represents our training data 
-        
-        // Color the trainining data
-        
-        if ( labelInput[row] == 1 ) {
-             // Black for apple      
-             fill(colorValues[0]);
-        } else if (labelInput[row] == 2) {
-             // Mandarin 
-             fill(colorValues[1]);
-        } else if (labelInput[row] == 3) {
-            // Orange
-            fill(colorValues[2]); 
-        } else if (labelInput[row] == 4) {
-            // Lemon
-            fill(colorValues[3]); 
-        }
-        ellipse(widthInput[row] * 50, heightInput[row] * 50, 5,5);
-    }
-    
-   
-    
-    
-  } 
+  }
   
-  
-  // loop, while using the fill command , then ellipse to draw data
+  for ( int index = 0; index < trainingNodeList.length; index++ ) {
+     Node trainingNode = trainingNodeList[index];
+     fill(trainingNode.nodeColor);
+     ellipse((float) trainingNode.xValue * 60, (float) trainingNode.yValue * 70, 10, 10);
+    
+  }
+ 
+
   
 }
 
